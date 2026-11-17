@@ -1,0 +1,227 @@
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    color:#23312d;
+    background:#f4f7f5
+}
+
+header{
+    background:#164d3b;
+    color:white;
+    padding:16px 24px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px
+}
+
+header h1{
+    margin:0 0 4px;
+    font-size:24px
+}
+
+header small{
+    color:#d4e7dd
+}
+
+nav{
+    background:white;
+    display:flex;
+    gap:6px;
+    padding:10px 18px;
+    flex-wrap:wrap;
+    border-bottom:1px solid #ddd
+}
+
+button{
+    background:#167453;
+    color:white;
+    border:0;
+    border-radius:7px;
+    padding:10px 14px;
+    cursor:pointer;
+    font-weight:600
+}
+
+button:hover{
+    filter:brightness(.93)
+}
+
+nav button{
+    background:#eaf2ee;
+    color:#164d3b
+}
+
+nav button.ativo{
+    background:#167453;
+    color:white
+}
+
+.secundario{
+    background:#5c6d65
+}
+
+#aviso{
+    margin:0;
+    padding:0 22px;
+    min-height:26px;
+    color:#a33
+}
+
+#aviso.ok{
+    color:#176d48
+}
+
+.aba{
+    display:none;
+    padding:14px 20px
+}
+
+.aba.ativa{
+    display:block
+}
+
+.filtros{
+    display:flex;
+    gap:12px;
+    align-items:end;
+    flex-wrap:wrap;
+    margin-bottom:14px
+}
+
+.filtros label{
+    min-width:135px;
+    flex:1
+}
+
+.conteudo{
+    display:grid;
+    grid-template-columns:minmax(0,1.6fr) minmax(280px,1fr);
+    gap:15px;
+    height:65vh;
+    min-height:440px
+}
+
+#mapa{
+    height:100%;
+    border-radius:10px;
+    border:1px solid #d2ded6
+}
+
+.lateral{
+    background:white;
+    border-radius:10px;
+    overflow:auto;
+    padding:14px;
+    border:1px solid #dce7df
+}
+
+.lateral h2{
+    margin-top:0
+}
+
+.pet{
+    padding:12px;
+    border:1px solid #e1e8e3;
+    border-radius:9px;
+    margin:8px 0;
+    background:#fff
+}
+
+.pet h3{
+    margin:0 0 7px
+}
+
+.pet p{
+    margin:5px 0;
+    color:#52645b
+}
+
+.acoes{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    margin-top:10px
+}
+
+.acoes button{
+    font-size:12px;
+    padding:7px 9px
+}
+
+.painel{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    border:1px solid #e1e8e3;
+    max-width:480px
+}
+
+.painel.largo{
+    max-width:1000px;
+    margin:auto
+}
+
+.colunas{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+    max-width:1000px;
+    margin:auto
+}
+
+label{
+    display:block;
+    font-weight:600;
+    font-size:13px
+}
+
+input,select,textarea{
+    display:block;
+    width:100%;
+    margin-top:5px;
+    padding:10px;
+    border:1px solid #bdcfc5;
+    border-radius:7px;
+    font:inherit
+}
+
+textarea{
+    min-height:100px
+}
+
+.painel label{
+    margin-bottom:12px
+}
+
+.ajuda{
+    font-size:13px;
+    color:#52645b
+}
+
+
+@media(
+    max-width:800px
+)
+
+{.conteudo{
+    display:flex;
+    flex-direction:column;
+    height:auto
+}
+
+#mapa{
+    height:360px;
+    min-height:360px
+}
+.lateral{
+    max-height:450px
+}
+.colunas{
+    grid-template-columns:1fr
+}
+header{
+    flex-direction:column;
+    align-items:start
+}}

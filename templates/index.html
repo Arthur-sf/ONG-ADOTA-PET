@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>ONG • ADOTA PET</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='leaflet/leaflet.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    </head>
+
+    
+    <body>
+        <header>
+            <div>
+                <h1>
+                    <img src="/static/leaflet/images/logo.png" alt="logo"  width="130", height="75"> 
+                   </h1>
+                <small>Encontre seu pet ideal ! </small>
+            </div>
+            <div id="usuario">Visitante</div>
+        </header>
+
+
+<nav>
+    <button data-aba="conta">Minha conta</button>
+    <button data-aba="explorar" class="ativo">Explorar pets</button>
+    <button data-aba="cadastrar">Cadastrar pet</button>
+    <button data-aba="pedidos">Pedidos</button>
+</nav>
+<p id="aviso" role="status">
+</p>
+<section id="explorar" class="aba ativa">
+    <div class="filtros">
+        <label>Espécie<input id="f_especie" placeholder="Cachorro, Gato..."></label>
+        <label>Porte<select id="f_porte">
+            <option value="">Todos</option>
+            <option>Pequeno</option>
+            <option>Medio</option>
+            <option>Grande</option>
+        </select>
+    </label>
+    <label>Cidade<input id="f_cidade" placeholder="Sua cidade"></label>
+    <label>Idade máxima (meses)<input id="f_idade" type="number" min="0"></label>
+    <button id="filtrar">Filtrar</button>
+</div>
+
+
+<div class="conteudo">
+    <div id="mapa"></div>
+    <div class="lateral">
+        <h2>Animais para adoção</h2>
+        <div id="lista_pets"></div>
+    </div></div>
+</section>
+
+
+<section id="conta" class="aba">
+    <div class="colunas">
+        <form id="form_login" class="painel">
+            <h2>Entrar</h2>
+            <label>E-mail<input name="email" type="email" required></label>
+            <label>Senha<input name="senha" type="password" required></label>
+            <button>Entrar</button>
+            <button type="button" id="sair" class="secundario">Sair</button></form>
+            <form id="form_registro" class="painel">
+                <h2>Criar conta</h2>
+                <label>Nome<input name="nome" required maxlength="250">
+                </label>
+                <label>E-mail<input name="email" type="email" required></label>
+                <label>Senha (mínimo 8 caracteres)<input name="senha" type="password" minlength="8" required></label>
+                <label>Telefone<input name="telefone" required></label>
+                <label>Cidade<input name="cidade" required></label>
+                <label>Perfil<select name="perfil">
+                    <option value="adotante">Adotante</option>
+                    <option value="responsavel">Responsável pelo pet</option>
+                </select>
+            </label>
+            <button>Cadastrar</button>
+        </form>
+    </div>
+</section>
+
+
+<section id="cadastrar" class="aba">
+    <form id="form_pet" class="painel largo">
+        <h2>Cadastrar ou editar animal</h2>
+        <input type="hidden" name="id">
+        <div class="colunas">
+            <label>Nome<input name="nome" required></label>
+            <label>Espécie<input name="especie" placeholder="Cachorro" required>
+            </label>
+            <label>Raça<input name="raca"></label>
+            <label>Porte<select name="porte">
+                <option>Pequeno</option>
+                <option>Medio</option>
+                <option>Grande</option>
+            </select>
+        </label>
+
+
+        <label>Sexo<select name="sexo">
+            <option>Macho</option>
+            <option>Femea</option>
+        </select>
+
+
+    </label>
+        <label>Idade total em meses<input name="idade_meses" type="number" min="0" max="360" required></label>
+        <label>Castrado<select name="castrado">
+            <option value="true">Sim</option>
+            <option value="false">Não</option>
+        </select>
+    </label>
+
+
+    <label>Vacinado<select name="vacinado">
+        <option value="true">Sim</option>
+        <option value="false">Não</option>
+    </select>
+</label>
+<label>Cidade<input name="cidade" required></label>
+<label>Latitude<input name="latitude" type="number" step="any" placeholder="Clique no mapa"></label>
+<label>Longitude<input name="longitude" type="number" step="any" placeholder="Clique no mapa"></label>
+</div>
+<label>Descrição<textarea name="descricao" required maxlength="500">
+</textarea>
+</label><p class="ajuda">Clique no mapa da aba Explorar para preencher a localização. Use uma localização aproximada para preservar a privacidade do responsável.</p>
+<button>Salvar animal</button>
+<button type="button" class="secundario" id="limpar_pet">Limpar formulário</button>
+</form>
+</section>
+
+
+<section id="pedidos" class="aba">
+    <div class="painel largo">
+        <h2>Pedidos de adoção</h2>
+        <p>Adotantes veem seus pedidos. Responsáveis podem aceitar ou recusar os pedidos recebidos.</p>
+        <div id="lista_pedidos"></div>
+    </div>
+</section>
+
+
+<section id="favoritos" class="aba">
+    <div class="painel largo">
+        <h2>Meus favoritos</h2>
+        <div id="lista_favoritos">
+        </div>
+    </div>
+</section>
+
+
+<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}">
+</script>
+</body>
+</html>
