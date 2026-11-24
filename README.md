@@ -1,61 +1,66 @@
-# Projeto 4 — Cadastro de Pets para Adoção
 
-Projeto escolar baseado na estrutura do exemplo do professor: **Flask + MySQL + Leaflet + OpenStreetMap**. Inclui cadastro/login, perfis, CRUD de pets, filtros, mapa, pedidos, favoritos, fotos por URL HTTPS e tabelas de triagem.
+# ONG ADOTA PET
 
-## 1. Preparar o MySQL no DBeaver
+## Sobre o projeto
 
-1. Instale e inicie o **MySQL Server 8.0.16+**. O DBeaver é um cliente, não substitui o servidor.
-2. Abra o DBeaver, crie uma conexão MySQL (`localhost`, porta `3306`, usuário e senha do seu MySQL).
-3. Abra **Editor SQL → Novo script** e execute todo o arquivo `sql/banco.sql`.
-4. Confira com `USE ong_adocao_pets; SHOW TABLES;`.
-5. **Atenção:** `CREATE TABLE IF NOT EXISTS` não altera tabelas antigas. Em caso de banco anterior, faça backup e confira a estrutura antes de usar este script.
+O ONG ADOTA PET é uma plataforma web desenvolvida para facilitar a adoção responsável de animais, conectando adotantes e responsáveis por pets. O sistema permite divulgar animais disponíveis, realizar buscas personalizadas e gerenciar pedidos de adoção de forma simples e organizada.
 
-## 2. Abrir no VS Code (Windows)
+## Links de acesso
 
-No terminal da pasta `projeto4_adocao_pets`:
+- **Site:** https://ong-adota-pet.onrender.com
+- **Documentação da API:** https://ong-adota-pet.onrender.com/apidocs/
+- **Repositório GitHub:** https://github.com/Arthur-sf/ONG-ADOTA-PET
 
-```powershell
-py -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-Copy-Item .env.example .env
-```
+## Funcionalidades
 
-Edite o `.env` e troque `SUA_SENHA` pela senha do MySQL; defina `SECRET_KEY` aleatória. Se sua senha contiver `@`, `#`, `:` ou `/`, codifique os caracteres especiais para uso em URL ou use uma senha de desenvolvimento sem esses caracteres. **Não compartilhe nem publique o `.env`.**
+- Cadastro e autenticação de usuários.
+- Perfis de adotante e responsável.
+- Cadastro, consulta, edição e exclusão de pets.
+- Pesquisa de animais por filtros.
+- Mapa interativo com localização aproximada dos pets.
+- Envio e gerenciamento de pedidos de adoção.
+- Sistema de favoritos.
+- Cadastro de fotos por URL através da API.
+- Interface responsiva para diferentes dispositivos.
 
-```powershell
-python app.py
-```
+## Tecnologias utilizadas
 
-Abra http://127.0.0.1:5000. API Swagger: http://127.0.0.1:5000/apidocs/ . Teste de conexão: http://127.0.0.1:5000/health .
+| Categoria | Tecnologias |
+|---|---|
+| Frontend | HTML, CSS e JavaScript |
+| Backend | Python e Flask |
+| Banco de dados | MySQL |
+| Gerenciamento do banco | DBeaver |
+| Mapas | Leaflet e OpenStreetMap |
+| Documentação da API | Swagger e Flasgger |
+| Versionamento | Git e GitHub |
+| Hospedagem | Render e Aiven |
 
-## 3. Testar o fluxo
+## Arquitetura do sistema
 
-1. Na aba **Minha conta**, crie uma conta **responsável** e faça login.
-2. Vá em **Explorar pets**, clique no mapa para selecionar coordenadas aproximadas.
-3. Abra **Cadastrar pet**, preencha o formulário e salve.
-4. Saia e crie uma conta **adotante** com outro e-mail.
-5. Encontre o pet, favorite e envie um pedido de adoção.
-6. Entre novamente como responsável e vá à aba **Pedidos** para aceitar ou recusar.
-7. O pet adotado sai da busca padrão; os demais pedidos pendentes são recusados em uma transação.
+A plataforma integra frontend, backend e banco de dados por meio de uma API REST, utilizando JSON para a comunicação entre a interface e o servidor.
 
-## Estrutura
+O banco de dados MySQL é composto por seis tabelas relacionadas, responsáveis pelo armazenamento de usuários, pets, pedidos de adoção, favoritos, fotos e dados de triagem.
 
-- `app.py`: rotas Flask, autenticação e MySQL.
-- `templates/index.html`: interface HTML.
-- `static/style.css`: estilos.
-- `static/app.js`: frontend e chamadas à API.
-- `static/leaflet/`: arquivos Leaflet do exemplo do professor.
-- `sql/banco.sql`: seis tabelas e relacionamentos.
-- `.env.example`: exemplo de configuração sem credenciais reais.
+## Documentação da API
 
-## Observações para a avaliação
+A API possui 18 operações documentadas com Swagger, permitindo consultar rotas, métodos HTTP, parâmetros e códigos de resposta.
 
-- A tabela `triagem_adotantes` existe, mas o formulário de triagem ainda não está integrado à interface.
-- Fotos: há API para cadastrar **URL HTTPS** de fotos; upload de arquivos e galeria visual ainda não foram implementados.
-- A rota de favoritos está pronta. A interface oferece adicionar/remover favoritos.
-- A API é exposta no Swagger, mas os detalhes de parâmetros e respostas ainda precisam ser documentados.
-- A autenticação utiliza sessão Flask. Para publicação com autenticação por cookie, configure HTTPS, `COOKIE_SECURE=true`, chave secreta forte e proteção CSRF para rotas de escrita.
-- Não publique o projeto em produção sem revisar segurança, proteção CSRF, limites de requisição, política de privacidade e autorização.
-- A aplicação não cria contas administradoras publicamente (por segurança). A administração completa não possui painel próprio nesta versão.
-- A hospedagem Render + Aiven exige configurar `DATABASE_URL`, TLS/CA e variáveis de ambiente no serviço. Não envie certificados ou segredos ao Git.
+## Segurança
+
+O sistema utiliza autenticação por sessão, proteção de senhas por hash, controle de acesso por perfil, validação de dados, variáveis de ambiente e conexão segura com o banco de dados.
+
+## Hospedagem
+
+A aplicação está hospedada no Render, com banco de dados no Aiven e versionamento pelo GitHub, permitindo a publicação automatizada de atualizações.
+
+## Melhorias futuras
+
+- Desenvolvimento de um painel administrativo.
+- Integração do formulário de triagem de adotantes.
+- Upload e galeria de imagens.
+- Aprimoramento da segurança e proteção de dados.
+
+---
+
+**ONG ADOTA PET — Conectando animais a novos lares.**
