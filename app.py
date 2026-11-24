@@ -20,7 +20,13 @@ app.config.update(
     SESSION_COOKIE_SECURE=os.getenv('COOKIE_SECURE', 'false').lower() == 'true',
     MAX_CONTENT_LENGTH=1024 * 1024,
 )
-Swagger(app, template={'info': {'title': 'API ONG Adoção de Pets', 'version': '1.0', 'description': 'Rotas do Projeto 4'}})
+Swagger(app, template={
+    'info': {
+        'title': 'API ONG ADOTA PET',
+        'version': '1.0',
+        'description': 'API para gerenciamento de pets e pedidos de adoção.'
+    }
+})
 
 
 def conectar():
@@ -167,12 +173,71 @@ def inicio():
 
 @app.route('/health')
 def health():
+    """
+    Verifica a conexão com o banco de dados.
+    ---
+    tags:
+      - Sistema
+    responses:
+      200:
+        description: Banco de dados conectado
+      503:
+        description: Erro de conexão
+    """
     executar('SELECT 1')
     return jsonify(status='ok')
 
 
 @app.post('/api/usuarios')
 def cadastrar():
+    """
+    Cadastra um novo usuário.
+    ---
+    tags:
+      - Usuarios
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: usuario
+        required: true
+        schema:
+          type: object
+          required:
+            - nome
+            - email
+            - telefone
+            - cidade
+            - senha
+            - perfil
+          properties:
+            nome:
+              type: string
+            email:
+              type: string
+            telefone:
+              type: string
+            cidade:
+              type: string
+            senha:
+              type: string
+              minLength: 8
+              maxLength: 128
+            perfil:
+              type: string
+              enum:
+                - adotante
+                - responsavel
+    responses:
+      201:
+        description: Usuário cadastrado
+      400:
+        description: Dados inválidos
+      409:
+        description: E-mail já cadastrado
+      503:
+        description: Erro no banco de dados
+    """
     d = dados_json()
     try:
         nome = texto(d, 'nome', 250)
@@ -197,6 +262,35 @@ def cadastrar():
 
 @app.post('/api/login')
 def login():
+    """
+    Realiza o login do usuário.
+    ---
+    tags:
+      - Usuarios
+    consumes:
+      - application/json
+    parameters:
+      - in: body
+        name: login
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+            - senha
+          properties:
+            email:
+              type: string
+            senha:
+              type: string
+    responses:
+      200:
+        description: Login realizado com sucesso
+      401:
+        description: E-mail ou senha incorretos
+      503:
+        description: Erro no banco de dados
+    """
     d = dados_json()
     email = str(d.get('email', '')).strip().lower()
     u = executar('SELECT id,nome,email,perfil,senha_hash FROM usuarios WHERE email=%s', (email,), um=True)
@@ -210,12 +304,32 @@ def login():
 @app.post('/api/logout')
 @exige_login()
 def logout():
+    """
+    Encerra a sessão do usuário.
+    ---
+    tags:
+      - Usuarios
+    responses:
+      200:
+        description: Logout realizado
+      401:
+        description: Usuário não autenticado
+    """
     session.clear()
     return jsonify(ok=True)
 
 
 @app.get('/api/me')
 def me():
+    """
+    Retorna os dados do usuário da sessão atual.
+    ---
+    tags:
+      - Usuarios
+    responses:
+      200:
+        description: Dados do usuário ou valor nulo
+    """
     return jsonify(usuario=usuario_atual())
 
 
@@ -224,6 +338,41 @@ CAMPOS = 'id,responsavel_id,nome,especie,raca,porte,sexo,idade_meses,castrado,va
 
 @app.get('/api/pets')
 def listar_pets():
+    """
+    Lista os pets disponíveis para adoção.
+    ---
+    tags:
+      - Pets
+    parameters:
+      - name: especie
+        in: query
+        type: string
+        description: Espécie do animal
+      - name: porte
+        in: query
+        type: string
+        enum: [Pequeno, Medio, Grande]
+      - name: cidade
+        in: query
+        type: string
+      - name: idade_max
+        in: query
+        type: integer
+        minimum: 0
+        description: Idade máxima em meses
+      - name: todos
+        in: query
+        type: string
+        enum: ['0', '1']
+        description: Incluir todos os status
+    responses:
+      200:
+        description: Lista de pets
+      400:
+        description: Filtro inválido
+      503:
+        description: Erro no banco de dados
+    """
     filtros = ['status = %s']
     params = ['Disponivel']
     if request.args.get('todos') == '1':
@@ -250,6 +399,25 @@ def listar_pets():
 
 @app.get('/api/pets/<int:pet_id>')
 def detalhe_pet(pet_id):
+    """
+    Consulta as informações de um pet.
+    ---
+    tags:
+      - Pets
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+    responses:
+      200:
+        description: Pet encontrado
+      404:
+        description: Pet não encontrado
+      503:
+        description: Erro no banco de dados
+    """
     p = executar(f'SELECT {CAMPOS} FROM pets WHERE id=%s', (pet_id,), um=True)
     return jsonify(json_pronto(p)) if p else erro('Pet não encontrado.', 404)
 
@@ -257,6 +425,70 @@ def detalhe_pet(pet_id):
 @app.post('/api/pets')
 @exige_login('responsavel', 'administrador')
 def criar_pet():
+    """
+    Cadastra um novo pet para adoção.
+    ---
+    tags:
+      - Pets
+    consumes:
+      - application/json
+    parameters:
+      - name: pet
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - nome
+            - especie
+            - porte
+            - sexo
+            - idade_meses
+            - castrado
+            - vacinado
+            - descricao
+            - cidade
+          properties:
+            nome:
+              type: string
+            especie:
+              type: string
+            raca:
+              type: string
+            porte:
+              type: string
+              enum: [Pequeno, Medio, Grande]
+            sexo:
+              type: string
+              enum: [Macho, Femea]
+            idade_meses:
+              type: integer
+              minimum: 0
+              maximum: 360
+            castrado:
+              type: boolean
+            vacinado:
+              type: boolean
+            descricao:
+              type: string
+            cidade:
+              type: string
+            latitude:
+              type: number
+            longitude:
+              type: number
+    responses:
+      201:
+        description: Pet cadastrado com sucesso
+      400:
+        description: Dados inválidos
+      401:
+        description: Usuário não autenticado
+      403:
+        description: Usuário sem permissão
+      503:
+        description: Erro no banco de dados
+    """
     try:
         p = validar_pet(dados_json())
     except ValueError as e:
@@ -270,6 +502,79 @@ def criar_pet():
 @app.put('/api/pets/<int:pet_id>')
 @exige_login('responsavel', 'administrador')
 def editar_pet(pet_id):
+    """
+    Atualiza as informações de um pet cadastrado.
+    ---
+    tags:
+      - Pets
+    consumes:
+      - application/json
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+      - name: pet
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - nome
+            - especie
+            - porte
+            - sexo
+            - idade_meses
+            - castrado
+            - vacinado
+            - descricao
+            - cidade
+          properties:
+            nome:
+              type: string
+            especie:
+              type: string
+            raca:
+              type: string
+            porte:
+              type: string
+              enum: [Pequeno, Medio, Grande]
+            sexo:
+              type: string
+              enum: [Macho, Femea]
+            idade_meses:
+              type: integer
+              minimum: 0
+              maximum: 360
+            castrado:
+              type: boolean
+            vacinado:
+              type: boolean
+            descricao:
+              type: string
+            cidade:
+              type: string
+            latitude:
+              type: number
+            longitude:
+              type: number
+    responses:
+      200:
+        description: Pet atualizado com sucesso
+      400:
+        description: Dados inválidos
+      401:
+        description: Usuário não autenticado
+      403:
+        description: Usuário sem permissão
+      404:
+        description: Pet não encontrado
+      409:
+        description: Pet já adotado
+      503:
+        description: Erro no banco de dados
+    """
     existente = executar('SELECT responsavel_id,status FROM pets WHERE id=%s', (pet_id,), um=True)
     if not existente:
         return erro('Pet não encontrado.', 404)
@@ -290,6 +595,31 @@ def editar_pet(pet_id):
 @app.delete('/api/pets/<int:pet_id>')
 @exige_login('responsavel', 'administrador')
 def excluir_pet(pet_id):
+    """
+    Exclui um pet cadastrado.
+    ---
+    tags:
+      - Pets
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+    responses:
+      200:
+        description: Pet excluído com sucesso
+      401:
+        description: Usuário não autenticado
+      403:
+        description: Usuário sem permissão
+      404:
+        description: Pet não encontrado
+      409:
+        description: Pet possui histórico de pedidos
+      503:
+        description: Erro no banco de dados
+    """
     p = executar('SELECT responsavel_id FROM pets WHERE id=%s', (pet_id,), um=True)
     if not p:
         return erro('Pet não encontrado.', 404)
@@ -300,10 +630,49 @@ def excluir_pet(pet_id):
     executar('DELETE FROM pets WHERE id=%s', (pet_id,), escrita=True)
     return jsonify(ok=True)
 
-
 @app.post('/api/pets/<int:pet_id>/pedidos')
 @exige_login('adotante')
 def solicitar(pet_id):
+    """
+    Envia um pedido de adoção.
+    ---
+    tags:
+      - Pedidos de adoção
+    consumes:
+      - application/json
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+      - name: pedido
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - mensagem
+          properties:
+            mensagem:
+              type: string
+              maxLength: 2000
+    responses:
+      201:
+        description: Pedido enviado com sucesso
+      400:
+        description: Mensagem inválida
+      401:
+        description: Usuário não autenticado
+      403:
+        description: Usuário sem permissão
+      404:
+        description: Pet não encontrado
+      409:
+        description: Pet indisponível ou pedido já enviado
+      503:
+        description: Erro no banco de dados
+    """
     d = dados_json()
     try:
         mensagem = texto(d, 'mensagem', 2000)
@@ -325,6 +694,19 @@ def solicitar(pet_id):
 @app.get('/api/pedidos')
 @exige_login()
 def listar_pedidos():
+    """
+    Lista os pedidos de adoção conforme o perfil do usuário.
+    ---
+    tags:
+      - Pedidos de adoção
+    responses:
+      200:
+        description: Lista de pedidos de adoção
+      401:
+        description: Usuário não autenticado
+      503:
+        description: Erro no banco de dados
+    """
     u = usuario_atual()
     if u['perfil'] == 'adotante':
         sql = 'SELECT pa.*,p.nome AS pet_nome FROM pedidos_adocao pa JOIN pets p ON p.id=pa.pet_id WHERE pa.adotante_id=%s ORDER BY pa.id DESC'
@@ -341,6 +723,46 @@ def listar_pedidos():
 @app.patch('/api/pedidos/<int:pedido_id>')
 @exige_login('responsavel', 'administrador')
 def decidir(pedido_id):
+    """
+    Aceita ou recusa um pedido de adoção.
+    ---
+    tags:
+      - Pedidos de adoção
+    consumes:
+      - application/json
+    parameters:
+      - name: pedido_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pedido
+      - name: pedido
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum: [Aceito, Recusado]
+    responses:
+      200:
+        description: Pedido atualizado com sucesso
+      400:
+        description: Status inválido
+      401:
+        description: Usuário não autenticado
+      403:
+        description: Usuário sem permissão
+      404:
+        description: Pedido não encontrado
+      409:
+        description: Pedido finalizado ou pet adotado
+      503:
+        description: Erro no banco de dados
+    """
     novo = dados_json().get('status')
     if novo not in ('Aceito', 'Recusado'):
         return erro('Status deve ser Aceito ou Recusado.')
@@ -374,6 +796,19 @@ def decidir(pedido_id):
 @app.get('/api/favoritos')
 @exige_login()
 def meus_favoritos():
+    """
+    Lista os pets favoritados pelo usuário.
+    ---
+    tags:
+      - Favoritos
+    responses:
+      200:
+        description: Lista de pets favoritos
+      401:
+        description: Usuário não autenticado
+      503:
+        description: Erro no banco de dados
+    """
     rows = executar(f'SELECT p.{CAMPOS.replace(",", ",p.")} FROM favoritos f JOIN pets p ON p.id=f.pet_id WHERE f.usuario_id=%s', (usuario_atual()['id'],))
     return jsonify(json_pronto(rows))
 
@@ -381,6 +816,27 @@ def meus_favoritos():
 @app.post('/api/favoritos/<int:pet_id>')
 @exige_login()
 def favoritar(pet_id):
+    """
+    Adiciona um pet aos favoritos.
+    ---
+    tags:
+      - Favoritos
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+    responses:
+      201:
+        description: Pet adicionado aos favoritos
+      401:
+        description: Usuário não autenticado
+      404:
+        description: Pet não encontrado
+      503:
+        description: Erro no banco de dados
+    """
     if not executar('SELECT id FROM pets WHERE id=%s', (pet_id,), um=True):
         return erro('Pet não encontrado.', 404)
     executar('INSERT IGNORE INTO favoritos (usuario_id,pet_id) VALUES (%s,%s)', (usuario_atual()['id'], pet_id), escrita=True)
@@ -390,23 +846,99 @@ def favoritar(pet_id):
 @app.delete('/api/favoritos/<int:pet_id>')
 @exige_login()
 def desfavoritar(pet_id):
+    """
+    Remove um pet dos favoritos.
+    ---
+    tags:
+      - Favoritos
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+    responses:
+      200:
+        description: Pet removido dos favoritos
+      401:
+        description: Usuário não autenticado
+      503:
+        description: Erro no banco de dados
+    """
     executar('DELETE FROM favoritos WHERE usuario_id=%s AND pet_id=%s', (usuario_atual()['id'], pet_id), escrita=True)
     return jsonify(ok=True)
 
 
 @app.get('/api/pets/<int:pet_id>/fotos')
 def listar_fotos(pet_id):
+    """
+    Lista as fotos cadastradas de um pet.
+    ---
+    tags:
+      - Fotos
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+    responses:
+      200:
+        description: Lista de fotos do pet
+      503:
+        description: Erro no banco de dados
+    """
     return jsonify(executar('SELECT id,caminho_foto,principal FROM fotos_pets WHERE pet_id=%s ORDER BY principal DESC,id', (pet_id,)))
 
 
 @app.post('/api/pets/<int:pet_id>/fotos')
 @exige_login('responsavel', 'administrador')
 def adicionar_foto(pet_id):
+    """
+    Cadastra uma foto do pet por URL HTTPS.
+    ---
+    tags:
+      - Fotos
+    consumes:
+      - application/json
+    parameters:
+      - name: pet_id
+        in: path
+        type: integer
+        required: true
+        description: ID do pet
+      - name: foto
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - caminho_foto
+          properties:
+            caminho_foto:
+              type: string
+              maxLength: 500
+              description: Endereço HTTPS da imagem
+    responses:
+      201:
+        description: Foto cadastrada com sucesso
+      400:
+        description: URL inválida
+      401:
+        description: Usuário não autenticado
+      403:
+        description: Usuário sem permissão
+      404:
+        description: Pet não encontrado
+      503:
+        description: Erro no banco de dados
+    """
     pet = executar('SELECT responsavel_id FROM pets WHERE id=%s', (pet_id,), um=True)
     if not pet:
         return erro('Pet não encontrado.', 404)
     if pet['responsavel_id'] != usuario_atual()['id'] and usuario_atual()['perfil'] != 'administrador':
         return erro('Sem permissão.', 403)
+
     # Para evitar upload inseguro, esta versão aceita apenas URL HTTPS.
     url = str(dados_json().get('caminho_foto', '')).strip()
     if not url.startswith('https://') or len(url) > 500:
