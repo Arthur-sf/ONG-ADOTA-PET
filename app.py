@@ -25,16 +25,35 @@ Swagger(app, template={'info': {'title': 'API ONG Adoção de Pets', 'version': 
 
 def conectar():
     endereco = os.getenv('DATABASE_URL')
+
     if not endereco:
         raise RuntimeError('Configure DATABASE_URL no arquivo .env')
+
     url = urlparse(endereco)
-    config = dict(host=url.hostname, port=url.port or 3306,
-                  user=unquote(url.username or ''), password=unquote(url.password or ''),
-                  database=url.path.lstrip('/'), charset='utf8mb4',
-                  cursorclass=pymysql.cursors.DictCursor, autocommit=False)
+
+    config = dict(
+        host=url.hostname,
+        port=url.port or 3306,
+        user=unquote(url.username or ''),
+        password=unquote(url.password or ''),
+        database=url.path.lstrip('/'),
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor,
+        autocommit=False
+    )
+
     ca = os.getenv('DB_SSL_CA')
+
     if ca:
-        config['ssl'] = {'ca': ca}
+        config['ssl_ca'] = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), ca
+        )
+        config['ssl_verify_cert'] = True
+        config['ssl_verify_identity'] = True
+
+    elif url.hostname.endswith('.aivencloud.com'):
+        raise RuntimeError('Configure o certificado SSL do Aiven')
+
     return pymysql.connect(**config)
 
 
